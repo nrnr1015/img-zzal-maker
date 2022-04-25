@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>img maker</title>
+</head>
+<style>
+  ul,
+  li {
+    list-style: none;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body {
+    text-align: center;
+  }
+
+  .main-card button {
+    position: relative;
+    left: -45px;
+    bottom: 15px;
+  }
+
+  .favorites {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+</style>
+
+<body>
+  <div id="app"></div>
+
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script type="text/babel">
+    const jsonLocalStorage = {
+      setItem: (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      },
+      getItem: (key) => {
+        return JSON.parse(localStorage.getItem(key));
+      },
+    };
+
+    const Title = (props) => {
+      return(
+        <h1>{props.children}</h1>
+      )
+    }
+    
+    const Form = ({updateMainCat}) => {
+      const [value, setValue] = React.useState('');
+      const includesHangul = (text) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/i.test(text);
+      const [errorMsg, setErrorMsg] = React.useState('')
+      
+      function handleInputChange(e){
+        const userValue = e.target.value;
+        setValue(e.target.value.toUpperCase());
+        setErrorMsg('')
+        if(includesHangul(userValue)){
+          setErrorMsg('한글X')
+        }
+      }
+
+      function handleForsubmit(e){
+        e.preventDefault();
+        setErrorMsg('')
+
+        if(value ===''){
+          setErrorMsg('빈 값으로 만들 수 없습니다.');
+          return;
+        }
+        updateMainCat();
+      }
+      return(
+        <form onSubmit={handleForsubmit}>
+          <input type="text" name="name" placeholder="영어 대사를 입력해주세요" onChange={handleInputChange} value={value}/>
+          <button type="submit">생성</button>
+          <p style={{color: "red"}}>{errorMsg}</p>
+        </form>
+      )
+    }
+
+      function CatItem(props){
+        return(
+          <li>
+            <img src={props.img} />
+          </li>
+        )
+      }
+
+      function Favorite({favoti}){
+        return(
+          <ul className="favorites">
+            {
+              favoti.map((cat) => (
+                <CatItem img={cat} key={cat} />
+              ))
+            }
+          </ul>
+        )
+      }
+
+      const MAinCard = ({img, onHeartClick}) => {
+        
+        return(
+          <div className="main-card">
+          <img
+            src={img}
+            alt="고양이"
+            width="400"
+          />
+          <button onClick={onHeartClick}>🤍</button>
+        </div>
+        )
+      }
+      const App = () => {
+        const CAT1 = "https://picsum.photos/seed/picsum/200/300";
+        const CAT2 = "https://picsum.photos/200/300?grayscale";
+        const CAT3 = "https://picsum.photos/seed/picsum/200/300";
+        const [counter, setCounter] = React.useState(
+          jsonLocalStorage.getItem("couter")
+        );
+        const [mainCatImg, setmainCatImg] = React.useState(CAT1);
+        const [favoti, setfavoti] = React.useState(
+          jsonLocalStorage.getItem("nextfavir") || []
+        )
+
+        function updateMainCat(){
+          setmainCatImg(CAT2)
+          const nextCouter = counter + 1
+          setCounter(nextCouter)
+          jsonLocalStorage.setItem("couter", nextCouter);
+        }
+        function handleHeartClick(){
+          const nextFavir = [...favoti, mainCatImg]
+          setfavoti(nextFavir)
+          jsonLocalStorage.setItem("nextfavir", nextFavir);
+        };
+        return(
+          <div>
+            <Title> {counter} 제목 </Title>
+            <Form updateMainCat={updateMainCat}/> 
+            <MAinCard img={mainCatImg} onHeartClick={handleHeartClick}/> 
+            <Favorite favoti={favoti}/>
+          </div>
+        )
+      }
+      
+
+      const 여기다가그려 = document.querySelector("#app");
+      ReactDOM.render(<App />, 여기다가그려);
+
+    </script>
+</body>
+
+</html>
